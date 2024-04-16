@@ -3,7 +3,7 @@ import requests
 import xml.etree.ElementTree as ET
 
 bp = Blueprint('main', __name__)
-RTMP_STATS_URL = 'http://localhost:6666/stat.xml'
+RTMP_STATS_URL = 'http://movies.eggpoker.com/stat.xml'
 
 def get_active_stream_paths():
     # Fetch the XML data from the Nginx RTMP stats page
