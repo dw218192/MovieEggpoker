@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Streaming Site</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div id="sidebar">
+        <ul>
+            {% for channel in channels %}
+            <li><a href="#" onclick="playVideo('{{ channel }}')">{{ channel }}</a></li>
+            {% else %}
+            <li>No active channels</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="video-player">
+        <!-- <video id="video" width="640" height="360" controls autoplay>
+            <source src="" type="video/mp4">
+            Your browser sucks and does not support the video tag.
+        </video> -->
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
