@@ -2,12 +2,13 @@ import os
 
 from flask import Flask
 import sqlite3
+import random
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY=random.randbytes(16) if not app.debug else 'dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
     from . import main
@@ -24,7 +25,5 @@ def create_app(test_config=None):
     try:
         os.makedirs(app.instance_path)
     except OSError:
-        print("Error creating instance folder")
-        exit(1)
-
+        pass
     return app

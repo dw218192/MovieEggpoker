@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 import requests
 import xml.etree.ElementTree as ET
 
-main = Blueprint('main', __name__)
+bp = Blueprint('main', __name__)
 RTMP_STATS_URL = 'http://localhost:6666/stat.xml'
 
 def get_active_stream_paths():
@@ -23,6 +23,6 @@ def get_active_stream_paths():
         print("Failed to retrieve rtmp stat data")
         return []
 
-@main.route('/')
+@bp.route('/')
 def main_page():
     render_template('index.html', channels=get_active_stream_paths())
