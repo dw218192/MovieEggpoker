@@ -3,26 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Streaming Site</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Egg Poker</title>
+    <link href="https://vjs.zencdn.net/7.10.2/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/7.10.2/video.min.js"></script>
 </head>
 <body>
-    <div id="sidebar">
-        <ul>
-            {% for channel in channels %}
-            <li><a href="#" onclick="playVideo('{{ channel }}')">{{ channel }}</a></li>
-            {% else %}
-            <li>No active channels</li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div id="video-player">
-        <!-- <video id="video" width="640" height="360" controls autoplay>
-            <source src="" type="video/mp4">
-            Your browser sucks and does not support the video tag.
-        </video> -->
+    <h1>Active Streams</h1>
+    <ul id="streams-list">
+        <!-- Stream names will be dynamically inserted here -->
+    </ul>
+    <div>
+        <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="1080" height="720">
+            <source src="" type="rtmp/mp4">
+        </video>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="../static/js/script.js"></script>
 </body>
 </html>
