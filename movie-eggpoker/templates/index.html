@@ -6,15 +6,18 @@
     <title>Egg Poker</title>
     <link href="https://vjs.zencdn.net/7.10.2/video-js.css" rel="stylesheet" />
     <script src="https://vjs.zencdn.net/7.10.2/video.min.js"></script>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
     <h1>Active Streams</h1>
     <ul id="streams-list">
         <!-- Stream names will be dynamically inserted here -->
     </ul>
-    <div>
-        <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="1080" height="720">
-            <source src="" type="rtmp/mp4">
+
+    <h1 id="videoTitle">Select a source to play</h2>
+    <div id="videoContainer">
+        <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="800" height="600">
+            <source src="" type="application/x-mpegURL">
         </video>
     </div>
 

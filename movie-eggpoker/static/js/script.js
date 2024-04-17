@@ -1,5 +1,6 @@
 // Initialize Video.js
 var player = videojs('videoPlayer');
+var curAspectRatio = 9/16;
 const HOST_NAME = 'movies.eggpoker.com';
 
 function fetchActiveStreams() {
@@ -32,16 +33,17 @@ function updateStreamList(xmlDoc) {
         // Add each stream under this application to the list
         for (let stream of streams) {
             const streamName = stream.getElementsByTagName('name')[0].textContent;
-            // const fullName = `${appName}/${streamName}`;
-
+            const meta = stream.getElementsByTagName('meta')[0];
             const li = document.createElement('li');
 
-            li.textContent = streamName;
             li.addEventListener('click', function() {
-                playStream(streamName);
+                playStream(streamName, 
+                    parseInt(meta.getElementsByTagName('width')[0].textContent),
+                    parseInt(meta.getElementsByTagName('height')[0].textContent)
+                );
             });
-            li.style.cursor = 'pointer';
-            li.style.color = 'blue';
+            li.textContent = streamName;
+            li.className = 'clickable-item'; // Apply the CSS class        
 
             streamsList.appendChild(li);
         }
@@ -54,9 +56,21 @@ function updateStreamList(xmlDoc) {
     }
 }
 
-function playStream(streamName, type = 'application/x-mpegURL') {    
+
+function resizeVideoPlayer(){
+    var width = document.getElementById(player.id()).parentElement.offsetWidth;
+    player.width(width);
+    player.height(width * curAspectRatio);
+}
+
+function playStream(streamName, width, height, type = 'application/x-mpegURL') {    
     const streamURL = `https://${HOST_NAME}/hls/${streamName}.m3u8`;
     console.log(`Playing stream: ${streamURL}`);
+
+    const videoTitle = document.getElementById('videoTitle')
+    videoTitle.textContent = streamName;
+    curAspectRatio = height / width;
+    resizeVideoPlayer();
 
     player.src({
         type: type,
@@ -65,4 +79,7 @@ function playStream(streamName, type = 'application/x-mpegURL') {
     player.play();
 }
 
+
+window.onresize = resizeVideoPlayer;
+resizeVideoPlayer();
 setInterval(fetchActiveStreams, 1000);
