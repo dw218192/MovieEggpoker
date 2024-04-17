@@ -16,7 +16,22 @@
 .clickable-item {
     max-width: 200px; /* Limit the width of the clickable region */
     display: block;
-    text-align: center;
+    text-align: left;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: blue;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 5px 10px;
+    margin: 5px;
+    transition: background-color 0.3s; /* Smooth transition for background color changes */
+}
+
+/* Styles for search result clickable list items */
+.search-result {
+    display: inline-block;
+    text-align: left;
     font-size: 1.5em;
     cursor: pointer;
     color: blue;

@@ -56,6 +56,8 @@ function updateStreamList(xmlDoc) {
     }
 }
 
+function updateSearchResults(keyword) {
+}
 
 function resizeVideoPlayer(){
     var width = document.getElementById(player.id()).parentElement.offsetWidth;
@@ -79,7 +81,24 @@ function playStream(streamName, width, height, type = 'application/x-mpegURL') {
     player.play();
 }
 
+// playing from Youtube, bilibili, or other video sites
+function playFromURL(url, type = 'application/x-mpegURL') {
+    console.log(`Playing from URL: ${url}`);
+    player.src({
+        type: type,
+        src: url,
+    });
+    player.play();
+}
 
+// set up search bar
+const searchForm = document.getElementById('searchButton');
+searchForm.addEventListener('click', function() {
+    const keyword = document.getElementById('searchInput').value;
+    updateSearchResults(keyword);
+});
+
+// set up stream list
 window.onresize = resizeVideoPlayer;
 resizeVideoPlayer();
 setInterval(fetchActiveStreams, 1000);
