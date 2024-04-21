@@ -3,13 +3,20 @@
     background-color: #000;
     border-radius: 5px;
     box-shadow: 0 0 20px rgba(50, 50, 50, 0.95);
-    border: 2px #ccc solid;
+    margin-top: 20px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 20px;
-    width: calc(100vw - 40px);  /* Assuming a total margin of 40px (20px on each side) */
-    height: auto;  /* Adjust height as needed, can be set to maintain aspect ratio */
-    max-width: 1080px;  /* Optional: if you want to limit the maximum width */
+    width: 80%;
+    height: auto;
+    min-width: 320px;
+    max-width: 1600px;
+    min-height: 180px;
+    max-height: 900px;
+}
+.video-js {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* Styles for clickable list items */
@@ -28,25 +35,45 @@
     transition: background-color 0.3s; /* Smooth transition for background color changes */
 }
 
-/* Styles for search result clickable list items */
-.search-result {
-    display: inline-block;
-    text-align: left;
-    font-size: 1.5em;
-    cursor: pointer;
-    color: blue;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    padding: 5px 10px;
-    margin: 5px;
-    transition: background-color 0.3s; /* Smooth transition for background color changes */
-}
-
 .clickable-item:hover {
     background-color: #f0f0f0;
 }
 
 .clickable-item:active {
     background-color: #808080;
+}
+
+
+#search-results {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px;
+}
+#search-results li {
+    display: inline-block;
+    margin-right: 20px;
+    vertical-align: top;
+}
+#search-results img {
+    width: 120px;
+    height: 90px;
+    object-fit: cover; /* Ensures the images are nicely fitted */
+}
+#search-results span {
+    display: block;
+    font-size: 14px;
+    width: 120px; /* Match image width for alignment */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@media (max-width: 600px) {
+    #search-results img {
+        width: 80px;
+        height: 60px;
+    }
+    #search-results span {
+        width: 80px;
+    }
 }

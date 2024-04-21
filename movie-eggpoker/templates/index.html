@@ -1,33 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Egg Poker</title>
-    <link href="https://vjs.zencdn.net/7.10.2/video-js.css" rel="stylesheet" />
-    <script src="https://vjs.zencdn.net/7.10.2/video.min.js"></script>
+    <link href="../static/node_modules/video.js/dist/video-js.css" rel="stylesheet" />
+    <script src="../static/node_modules/video.js/dist/video.min.js"></script>
+    <script src="../static/node_modules/videojs-youtube/dist/Youtube.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
     <link rel="stylesheet" href="../static/css/style.css">
 </head>
+
 <body>
+    <input type="text" id="searchInput" name="searchInput" placeholder="Search on Popular Video Platforms" />
+    <button type="submit" onclick="getSearchResult(document.getElementById('searchInput').value)">Search</button>
+    <ul id="search-results">
+    </ul>
+
     <h1>Active Streams</h1>
     <ul id="streams-list">
         <!-- Stream names will be dynamically inserted here -->
     </ul>
-    
-    <!-- Search bar -->
-    <input type="text" id="searchInput" placeholder="Search on Popular Video Platforms">  
-    <button id="searchButton">Search</button>
-    <ul id="search-results">
-        <!-- Search results will be dynamically inserted here -->
-    </ul>
 
     <h1 id="videoTitle">Select a source to play</h2>
-    <div id="videoContainer">
-        <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="800" height="600">
-            <source src="" type="application/x-mpegURL">
-        </video>
-    </div>
+        <div id="videoContainer">
+            <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="800" height="600">
+                <source src="" type="application/x-mpegURL">
+            </video>
+        </div>
 
-    <script src="../static/js/script.js"></script>
+        <script src="../static/js/script.js"></script>
 </body>
+
 </html>

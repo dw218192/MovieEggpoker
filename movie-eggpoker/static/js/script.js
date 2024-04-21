@@ -1,13 +1,29 @@
 // Initialize Video.js
 var player = videojs('videoPlayer');
-var curAspectRatio = 9/16;
 const HOST_NAME = 'movies.eggpoker.com';
+
+player.on('loadedmetadata', function () {
+    // Set the initial playback position if the stream is live
+    if (player.duration() === Infinity) {
+        player.currentTime(0);
+    }
+});
+player.on('seeking', function () {
+    if (player.currentTime() > player.buffered().end(0)) {
+        player.currentTime(player.buffered().end(0)); // Prevent seeking beyond the buffered content
+    }
+});
+player.on('play', function () {
+    if (player.paused() && player.currentTime() < player.buffered().end(0)) {
+        player.currentTime(player.buffered().end(0));
+    }
+});
 
 function fetchActiveStreams() {
     fetch(`https://${HOST_NAME}/stat`, {
-            method: 'GET',
-            mode: 'cors'
-        })
+        method: 'GET',
+        mode: 'cors'
+    })
         .then(response => response.text())
         .then(data => {
             const parser = new DOMParser();
@@ -20,13 +36,15 @@ function fetchActiveStreams() {
 function updateStreamList(xmlDoc) {
     const streamsList = document.getElementById('streams-list');
     streamsList.innerHTML = ''; // Clear existing entries
-    
+
     // Loop through each application
     const applications = xmlDoc.getElementsByTagName('rtmp')[0]
         .getElementsByTagName('server')[0]
         .getElementsByTagName('application');
     for (let app of applications) {
         const appName = app.getElementsByTagName('name')[0].textContent;
+        if (appName == 'private') continue; // Skip 'private' application
+
         const live = app.getElementsByTagName('live')[0];
         const streams = live.getElementsByTagName('stream');
 
@@ -36,8 +54,8 @@ function updateStreamList(xmlDoc) {
             const meta = stream.getElementsByTagName('meta')[0];
             const li = document.createElement('li');
 
-            li.addEventListener('click', function() {
-                playStream(streamName, 
+            li.addEventListener('click', function () {
+                playStream(streamName,
                     parseInt(meta.getElementsByTagName('width')[0].textContent),
                     parseInt(meta.getElementsByTagName('height')[0].textContent)
                 );
@@ -56,23 +74,39 @@ function updateStreamList(xmlDoc) {
     }
 }
 
-function updateSearchResults(keyword) {
+function resizeVideoPlayer(desiredWidth, desiredHeight) {
+    // Assuming 'player' refers to your video.js player instance.
+    var playerContainer = document.getElementById(player.id()).parentElement;
+    var aspectRatio = desiredWidth / desiredHeight;
+
+    if (aspectRatio < 1) {
+        var containerWidth = playerContainer.offsetWidth;
+        var newHeight = containerWidth / aspectRatio;
+
+        player.width(containerWidth);
+        player.height(newHeight);
+
+        playerContainer.style.height = `${newHeight}px`;
+    } else {
+        var containerHeight = playerContainer.offsetHeight;
+        var newWidth = containerHeight * aspectRatio;
+
+        player.width(newWidth);
+        player.height(containerHeight);
+
+        playerContainer.style.width = `${newWidth}px`;
+    }
+
+
 }
 
-function resizeVideoPlayer(){
-    var width = document.getElementById(player.id()).parentElement.offsetWidth;
-    player.width(width);
-    player.height(width * curAspectRatio);
-}
-
-function playStream(streamName, width, height, type = 'application/x-mpegURL') {    
+function playStream(streamName, width, height, type = 'application/x-mpegURL') {
     const streamURL = `https://${HOST_NAME}/hls/${streamName}.m3u8`;
     console.log(`Playing stream: ${streamURL}`);
 
     const videoTitle = document.getElementById('videoTitle')
     videoTitle.textContent = streamName;
-    curAspectRatio = height / width;
-    resizeVideoPlayer();
+    resizeVideoPlayer(width, height);
 
     player.src({
         type: type,
@@ -82,8 +116,13 @@ function playStream(streamName, width, height, type = 'application/x-mpegURL') {
 }
 
 // playing from Youtube, bilibili, or other video sites
-function playFromURL(url, type = 'application/x-mpegURL') {
-    console.log(`Playing from URL: ${url}`);
+function playFromURL(url, width, height, type = 'application/x-mpegURL') {
+    console.log(`Playing video from URL: ${url} with type ${type}`);
+
+    const videoTitle = document.getElementById('videoTitle')
+    videoTitle.textContent = url;
+    resizeVideoPlayer(width, height);
+
     player.src({
         type: type,
         src: url,
@@ -91,14 +130,34 @@ function playFromURL(url, type = 'application/x-mpegURL') {
     player.play();
 }
 
-// set up search bar
-const searchForm = document.getElementById('searchButton');
-searchForm.addEventListener('click', function() {
-    const keyword = document.getElementById('searchInput').value;
-    updateSearchResults(keyword);
-});
+function getSearchResult(query) {
+    $.ajax({
+        url: `/search_video?searchInput=${query}`,
+        type: "GET",
+        success: function (videos) {
+            var html = "";
+            for (var i = 0; i < videos.length; i++) {
+                var video = videos[i];
+                html += `<li>
+                    <img src="${video.thumbnail}" alt="${video.title} Thumbnail" onclick="playFromURL('${video.url}', '${video.width}', '${video.height}', 'video/youtube')">
+                    <span>${video.title}</span>
+                </li>`;
+            }
+            $("#search-results").html(html);
+        },
+        error: function (xhr, status, error) {
+            console.log(error);
+        }
+    });
+}
 
 // set up stream list
-window.onresize = resizeVideoPlayer;
-resizeVideoPlayer();
+window.onresize = function () {
+    const playerContainer = document.getElementById(player.id()).parentElement;
+    const playerWidth = playerContainer.clientWidth;
+    const playerHeight = playerContainer.clientHeight;
+    resizeVideoPlayer(playerWidth, playerHeight);
+}
+
+resizeVideoPlayer(1080, 720);
 setInterval(fetchActiveStreams, 1000);
