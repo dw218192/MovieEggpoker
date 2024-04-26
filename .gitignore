@@ -1,4 +1,7 @@
 _local/
+node_modules/
+package-lock.json
+/movie_eggpoker/static/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

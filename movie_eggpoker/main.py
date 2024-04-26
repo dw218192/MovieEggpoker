@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from yt_dlp import YoutubeDL, utils
 from typing import Optional
 
-
 bp = Blueprint('main', __name__)
 
 @dataclass
@@ -32,13 +31,21 @@ def perform_search(search_query, max_results = 20):
     search_results = []
     if 'entries' in result:
         for entry in result['entries']:
-            thumbnail = entry['thumbnails'][0]
+            url, width, height = None, None, None
+
+            # get the highest resolution thumbnail
+            for thumbnail in entry['thumbnails']:
+                if width is None or thumbnail['width'] > width:
+                    url = thumbnail['url']
+                    width = thumbnail['width']
+                    height = thumbnail['height']   
+
             item = SearchResultItem(
                 entry['title'],
                 entry['url'],
-                thumbnail['url'],
-                thumbnail['width'],
-                thumbnail['height']
+                url if url is not None else 'https://via.placeholder.com/1200x675',
+                width if width is not None else 1200,
+                height if height is not None else 675
             )
             search_results.append(item)
             debug_log(f"Found video: {entry}")

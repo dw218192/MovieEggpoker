@@ -1,6 +1,12 @@
 param (
     [Parameter(Mandatory=$false)]
-    [int]$port = 6666
+    [int]$port = 6666,
+    [switch]$dbg
 )
 
-waitress-serve --listen=0.0.0.0:$port --call movie_eggpoker:create_app
+if ($dbg) {
+    Write-Host "Debug mode enabled"
+    $env:FLASK_DEBUG = 1
+}
+
+waitress-serve --listen=localhost:$port --call movie_eggpoker:create_app
