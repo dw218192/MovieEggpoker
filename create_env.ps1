@@ -16,5 +16,5 @@ if ($lastexitcode -eq 0) {
 
 conda activate flask_env
 conda install flask opencv requests
-pip install yt-dlp gunicorn waitress youtube-search
+pip install yt-dlp gunicorn waitress youtube-search-python
 npm install webpack webpack-cli

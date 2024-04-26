@@ -67,7 +67,7 @@ function resizeVideoPlayer(desiredWidth, desiredHeight) {
     var playerContainer = document.getElementById(player.id()).parentElement;
     var aspectRatio = desiredWidth / desiredHeight;
 
-    if (aspectRatio < 1) {
+    if (aspectRatio > 1) {
         var containerWidth = playerContainer.offsetWidth;
         var newHeight = containerWidth / aspectRatio;
 
@@ -88,8 +88,6 @@ function resizeVideoPlayer(desiredWidth, desiredHeight) {
 
         playerContainer.style.width = `${newWidth}px`;
     }
-
-
 }
 
 function playStream(streamName, width, height, type = 'application/x-mpegURL') {
@@ -109,7 +107,7 @@ function playStream(streamName, width, height, type = 'application/x-mpegURL') {
 
 // playing from Youtube, bilibili, or other video sites
 function playFromURL(url, width, height, type = 'application/x-mpegURL') {
-    console.log(`Playing video from URL: ${url} with type ${type}`);
+    console.log(`Playing video from URL: ${url} with type ${type}, width ${width}, and height ${height}`);
 
     const videoTitle = document.getElementById('videoTitle')
     videoTitle.textContent = url;
@@ -122,25 +120,23 @@ function playFromURL(url, width, height, type = 'application/x-mpegURL') {
     player.play();
 }
 
-function getSearchResult(query) {
-    $.ajax({
-        url: `/search_video?searchInput=${query}`,
-        type: "GET",
-        success: function (videos) {
-            var html = "";
-            for (var i = 0; i < videos.length; i++) {
-                var video = videos[i];
-                html += `<li>
-                    <img src="${video.thumbnail}" alt="${video.title} Thumbnail" onclick="playFromURL('${video.url}', '${video.width}', '${video.height}', 'video/youtube')">
-                    <span>${video.title}</span>
-                </li>`;
-            }
-            $("#search-results").html(html);
-        },
-        error: function (xhr, status, error) {
-            console.log(error);
+function fillSearchResults(data) {
+    if (data.status !== "ok") {
+        html = `<li>${data.message}</li>`;
+    }
+    else {
+        var videos = data.search_result;
+        console.log(videos.length);
+        var html = "";
+        for (var i = 0; i < videos.length; i++) {
+            var video = videos[i];
+            html += `<li>
+            <img src="${video.thumbnail}" alt="${video.title} Thumbnail" onclick="playFromURL('${video.url}', '${video.width}', '${video.height}', 'video/youtube')">
+            <span>${video.title}</span>
+        </li>`;
         }
-    });
+    }
+    $("#search-results").html(html);
 }
 
 // set up stream list
@@ -154,10 +150,54 @@ window.onresize = function () {
 resizeVideoPlayer(1080, 720);
 setInterval(fetchActiveStreams, 1000);
 
-document.getElementById('searchInputForm').addEventListener('submit', function (event) {
+const searchForm = document.getElementById('searchInputForm');
+searchForm.addEventListener('submit', function (event) {
     event.preventDefault();
-    getSearchResult(document.getElementById('searchInput').value);
+    const query = document.getElementById('searchInput').value;
+    $.ajax({
+        url: `/search_video?searchInput=${query}`,
+        type: "GET",
+        success: fillSearchResults,
+        error: function (xhr, status, error) {
+            console.log(error);
+        }
+    });
+});
+
+document.getElementById('nextPageButton').addEventListener('click', function () {
+    $.ajax({
+        url: `/next_page`,
+        type: "GET",
+        success: fillSearchResults,
+        error: function (xhr, status, error) {
+            console.log(error);
+        }
+    });
+});
+document.getElementById('prevPageButton').addEventListener('click', function () {
+    $.ajax({
+        url: `/prev_page`,
+        type: "GET",
+        success: fillSearchResults,
+        error: function (xhr, status, error) {
+            console.log(error);
+        }
+    });
 });
 
 // make sure this function is preserved by Webpack
 window.playFromURL = playFromURL;
+
+window.onbeforeunload = function () {
+    player.dispose();
+    $.ajax({
+        url: `/user_disconnected`,
+        type: "GET",
+        success: function (data) {
+            console.log(data);
+        },
+        error: function (xhr, status, error) {
+            console.log(error);
+        }
+    });
+}
