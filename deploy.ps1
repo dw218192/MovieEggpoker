@@ -7,14 +7,19 @@ param (
 if ($dbg) {
     Write-Host "Debug mode enabled"
     $env:FLASK_DEBUG = 1
-    $process = Start-Process -PassThru -NoNewWindow powershell.exe -ArgumentList "-NoExit -Command npx tailwindcss -i ./src/style.css -o ./movie_eggpoker/static/css/style_gen.css --watch"
+    $process = Start-Job -ScriptBlock {
+        npx tailwindcss -i ./src/style.css -o ./movie_eggpoker/static/css/style_gen.css --watch
+    }
+    Write-Host "Spawned job " $process.Id
 }
 
 try {
-    waitress-serve --listen=localhost:$port --call movie_eggpoker:create_app
+    # Start the Flask server using Waitress
+    Start-Process -NoNewWindow -Wait -FilePath "python" -ArgumentList "-m waitress --listen=localhost:$port --call movie_eggpoker:create_app"
 } finally {
     Write-Host "Cleaning up..."
-    if ($dbg -and !$process.HasExited) {
-        $process | Stop-Process -Force
+    if ($dbg -and $process) {
+        Stop-Job -Id $process.Id -Force
+        Remove-Job -Id $process.Id -Force
     }
 }

@@ -36,27 +36,26 @@ function resizeVideoPlayer(desiredWidth, desiredHeight) {
     }
 }
 
-function playStream(streamName, width, height, type = 'application/x-mpegURL') {
-    const streamURL = `https://${HOST_NAME}/hls/${streamName}.m3u8`;
-    console.log(`Playing stream: ${streamURL}`);
+function playStream(url, title, width, height, type = 'application/x-mpegURL') {
+    console.log(`Playing stream: ${url}`);
 
     const videoTitle = document.getElementById('videoTitle')
-    videoTitle.textContent = streamName;
+    videoTitle.textContent = title;
     resizeVideoPlayer(width, height);
 
     player.src({
         type: type,
-        src: streamURL,
+        src: url,
     });
     player.play();
 }
 
 // playing from Youtube, bilibili, or other video sites
-function playFromURL(url, width, height, type = 'application/x-mpegURL') {
+function playFromURL(url, title, width, height, type = 'application/x-mpegURL') {
     console.log(`Playing video from URL: ${url} with type ${type}, width ${width}, and height ${height}`);
 
     const videoTitle = document.getElementById('videoTitle')
-    videoTitle.textContent = url;
+    videoTitle.textContent = title;
     resizeVideoPlayer(width, height);
 
     player.src({
@@ -129,8 +128,9 @@ document.getElementById('prevPageButton').addEventListener('click', function () 
     });
 });
 
-// make sure this function is preserved by Webpack
+// make sure these are preserved by Webpack
 window.playFromURL = playFromURL;
+window.playStream = playStream;
 
 window.onbeforeunload = function () {
     player.dispose();

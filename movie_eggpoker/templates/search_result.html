@@ -4,7 +4,7 @@
         <img src="{{ video.thumbnail }}" 
             alt="{{ video.title }} Thumbnail"
             class="w-60 h-60 rounded-t-lg cursor-pointer" 
-            onclick="playFromURL('{{ video.url }}', '{{ video.width }}', '{{ video.height }}', 'video/youtube')">
+            onclick="playFromURL('{{ video.url }}', '{{video.title}}', '{{ video.width }}', '{{ video.height }}', 'video/youtube')">
         <span class="text-sm text-center truncate overflow-hidden w-full block">{{ video.title }}</span>
     </li>
     {% endfor %}
