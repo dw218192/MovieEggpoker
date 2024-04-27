@@ -48,13 +48,5 @@ def fetch_active_streams():
                 f'https://{STREAM_HOST_NAME}/hls/{stream_name}.m3u8',
                 stream_name, app_name, width, height
             ))
-
-    debug_log(f"Active streams: {stream_dict}")
-    # generate some test data
-    # return jsonify({'status' : 'ok', 
-    #                 'html' : render_template('stream_list.html', streams_grouped_by_app=
-    #                                          {'test_app' : [StreamDesc('test_stream', 'test_app', 1920, 1080), 
-    #                                                         StreamDesc('test_stream2', 'test_app', 1920, 1080)],
-    #                                           'test_app2' : [StreamDesc('test_stream2', 'test_app2', 1920, 1080)]})})
     return jsonify({'status' : 'ok', 
                     'html' : render_template('stream_list.html', streams_grouped_by_app=stream_dict)})

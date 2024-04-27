@@ -36,9 +36,10 @@ def create_app(test_config=None):
         open(LOG_FILE_PATH, 'w').close()
     get_logger().addHandler(file_handler)
 
-    from . import video_search, stream
+    from . import video_search, stream, manage
     app.register_blueprint(video_search.bp)
     app.register_blueprint(stream.bp)
+    app.register_blueprint(manage.bp)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

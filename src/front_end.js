@@ -5,43 +5,12 @@ const _ = require('./Youtube.js');
 // Initialize Video.js
 var player = videojs('videoPlayer');
 
-
-
-
-// TODO: fix this function
-function resizeVideoPlayer(desiredWidth, desiredHeight) {
-    var playerContainer = document.getElementById(player.id()).parentElement;
-    var aspectRatio = desiredWidth / desiredHeight;
-
-    if (aspectRatio > 1) {
-        var containerWidth = playerContainer.offsetWidth;
-        var newHeight = containerWidth / aspectRatio;
-
-        player.width(containerWidth);
-        player.height(newHeight);
-
-        console.log(`Setting player width to ${containerWidth}px and height to ${newHeight}px`);
-
-        playerContainer.style.height = `${newHeight}px`;
-    } else {
-        var containerHeight = playerContainer.offsetHeight;
-        var newWidth = containerHeight * aspectRatio;
-
-        player.width(newWidth);
-        player.height(containerHeight);
-
-        console.log(`Setting player width to ${newWidth}px and height to ${containerHeight}px`);
-
-        playerContainer.style.width = `${newWidth}px`;
-    }
-}
-
 function playStream(url, title, width, height, type = 'application/x-mpegURL') {
     console.log(`Playing stream: ${url}`);
 
     const videoTitle = document.getElementById('videoTitle')
     videoTitle.textContent = title;
-    resizeVideoPlayer(width, height);
+    // resizeVideoPlayer(width, height);
 
     player.src({
         type: type,
@@ -56,7 +25,7 @@ function playFromURL(url, title, width, height, type = 'application/x-mpegURL') 
 
     const videoTitle = document.getElementById('videoTitle')
     videoTitle.textContent = title;
-    resizeVideoPlayer(width, height);
+    // resizeVideoPlayer(width, height);
 
     player.src({
         type: type,
@@ -90,7 +59,7 @@ window.onresize = function () {
     resizeVideoPlayer(playerWidth, playerHeight);
 }
 
-resizeVideoPlayer(1080, 720);
+// resizeVideoPlayer(1080, 720);
 setInterval(updateStreamList, 1000);
 
 const searchForm = document.getElementById('searchInputForm');

@@ -9,15 +9,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env']
-          }
-        }
-      },
-      {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
@@ -25,9 +16,12 @@ module.exports = {
   },
   resolve: {
     modules: [path.resolve(__dirname, 'node_modules'), 'node_modules'],
-    extensions: ['', '.js', '.json', '.css'],
+    extensions: ['.js', '.json', '.css'],
     alias: {
       'videojs' : require.resolve('video.js'),
     }
+  },
+  optimization: {
+    minimize: process.env.NODE_ENV !== 'debug',
   },
 };
