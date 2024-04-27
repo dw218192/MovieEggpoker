@@ -1,68 +1,14 @@
-import './style.css';
-import '../node_modules/video.js/dist/video-js.css';
 import videojs from 'video.js';
 const _ = require('./Youtube.js');
 
 
-const HOST_NAME = "movies.eggpoker.com";
 // Initialize Video.js
 var player = videojs('videoPlayer');
 
-function fetchActiveStreams() {
-    fetch(`https://${HOST_NAME}/stat`, {
-        method: 'GET',
-        mode: 'cors'
-    })
-        .then(response => response.text())
-        .then(data => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(data, "text/xml");
-            updateStreamList(xmlDoc);
-        })
-        .catch(error => console.error('Error fetching the active streams:', error));
-}
 
-function updateStreamList(xmlDoc) {
-    const streamsList = document.getElementById('streams-list');
-    streamsList.innerHTML = ''; // Clear existing entries
 
-    // Loop through each application
-    const applications = xmlDoc.getElementsByTagName('rtmp')[0]
-        .getElementsByTagName('server')[0]
-        .getElementsByTagName('application');
-    for (let app of applications) {
-        const appName = app.getElementsByTagName('name')[0].textContent;
-        if (appName == 'private') continue; // Skip 'private' application
 
-        const live = app.getElementsByTagName('live')[0];
-        const streams = live.getElementsByTagName('stream');
-
-        // Add each stream under this application to the list
-        for (let stream of streams) {
-            const streamName = stream.getElementsByTagName('name')[0].textContent;
-            const meta = stream.getElementsByTagName('meta')[0];
-            const li = document.createElement('li');
-
-            li.addEventListener('click', function () {
-                playStream(streamName,
-                    parseInt(meta.getElementsByTagName('width')[0].textContent),
-                    parseInt(meta.getElementsByTagName('height')[0].textContent)
-                );
-            });
-            li.textContent = streamName;
-            li.className = 'clickable-item'; // Apply the CSS class        
-
-            streamsList.appendChild(li);
-        }
-    }
-
-    if (streamsList.children.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = 'No active streams';
-        streamsList.appendChild(li);
-    }
-}
-
+// TODO: fix this function
 function resizeVideoPlayer(desiredWidth, desiredHeight) {
     var playerContainer = document.getElementById(player.id()).parentElement;
     var aspectRatio = desiredWidth / desiredHeight;
@@ -120,23 +66,21 @@ function playFromURL(url, width, height, type = 'application/x-mpegURL') {
     player.play();
 }
 
-function fillSearchResults(data) {
-    if (data.status !== "ok") {
-        html = `<li>${data.message}</li>`;
-    }
-    else {
-        var videos = data.search_result;
-        console.log(videos.length);
-        var html = "";
-        for (var i = 0; i < videos.length; i++) {
-            var video = videos[i];
-            html += `<li>
-            <img src="${video.thumbnail}" alt="${video.title} Thumbnail" onclick="playFromURL('${video.url}', '${video.width}', '${video.height}', 'video/youtube')">
-            <span>${video.title}</span>
-        </li>`;
+function updateStreamList() {
+    $.ajax({
+        url: `fetch_streams`,
+        type: "GET",
+        success: function (data) {
+            $("#stream-list").html(data.html);
+        },
+        error: function (xhr, status, error) {
+            console.log(error);
         }
-    }
-    $("#search-results").html(html);
+    });
+}
+
+function fillSearchResults(data) {
+    $("#search-results").html(data.html);    
 }
 
 // set up stream list
@@ -148,7 +92,7 @@ window.onresize = function () {
 }
 
 resizeVideoPlayer(1080, 720);
-setInterval(fetchActiveStreams, 1000);
+setInterval(updateStreamList, 1000);
 
 const searchForm = document.getElementById('searchInputForm');
 searchForm.addEventListener('submit', function (event) {

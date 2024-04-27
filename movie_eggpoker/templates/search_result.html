@@ -1,0 +1,11 @@
+<ul class="flex space-x-4 whitespace-nowrap overflow-x-auto p-4">
+    {% for video in videos %}
+    <li class="w-72 bg-white shadow-lg rounded-lg px-4 py-2 hover:bg-gray-100 transition-colors duration-150 flex flex-col items-center space-y-2">
+        <img src="{{ video.thumbnail }}" 
+            alt="{{ video.title }} Thumbnail"
+            class="w-60 h-60 rounded-t-lg cursor-pointer" 
+            onclick="playFromURL('{{ video.url }}', '{{ video.width }}', '{{ video.height }}', 'video/youtube')">
+        <span class="text-sm text-center truncate overflow-hidden w-full block">{{ video.title }}</span>
+    </li>
+    {% endfor %}
+</ul>

@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, session, app, g
 
 from . import get_logger, debug_log
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from youtubesearchpython import VideosSearch
 from typing import Optional
@@ -9,8 +8,7 @@ from threading import Thread, Event
 import queue
 import uuid
 
-bp = Blueprint('main', __name__)
-
+bp = Blueprint('video', __name__)
 user_sessions : dict[uuid.UUID, 'SearchThread'] = {}
 
 @dataclass
@@ -118,8 +116,8 @@ def search_video_v2():
     t.send_msg(SearchThread.CMD_SEARCH, search_query, event)
 
     if not event.wait(20):
-        return jsonify({'status': 'error', 'message': 'Search timeout'})
-    return jsonify({'status': 'ok', 'search_result': t.get_search_result()})
+        return jsonify({'status': 'error', 'html': '<li>Search timeout</li>'})
+    return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
 
 @bp.route('/user_disconnected', methods=['GET'])
 def user_disconnected():
@@ -143,9 +141,9 @@ def next_page():
         event = Event()
         t.send_msg(SearchThread.CMD_NEXT_PAGE, None, event)
         if not event.wait(20):
-            return jsonify({'status': 'error', 'message': 'Next page timeout'})
-        return jsonify({'status': 'ok', 'search_result': t.get_search_result()})
-    return jsonify({'status': 'error', 'message': 'Session not found'})
+            return jsonify({'status': 'error', 'html': '<li>Next page timeout</li>'})
+        return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
+    return jsonify({'status': 'error', 'html': '<li>Session not found</li>'})
 
 @bp.route('/prev_page', methods=['GET'])
 def prev_page():
@@ -156,9 +154,9 @@ def prev_page():
         event = Event()
         t.send_msg(SearchThread.CMD_PREV_PAGE, None, event)
         if not event.wait(20):
-            return jsonify({'status': 'error', 'message': 'Prev page timeout'})
-        return jsonify({'status': 'ok', 'search_result': t.get_search_result()})
-    return jsonify({'status': 'error', 'message': 'Session not found'}) 
+            return jsonify({'status': 'error', 'html': '<li>Prev page timeout</li>'})
+        return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
+    return jsonify({'status': 'error', 'html': '<li>Session not found</li>'})
 
 @bp.route('/')
 def main_page():
