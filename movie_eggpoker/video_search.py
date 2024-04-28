@@ -4,31 +4,34 @@ from . import get_logger, debug_log, UserSession, tick_func
 from dataclasses import dataclass
 from youtubesearchpython import VideosSearch, Video
 from typing import Optional
-from threading import Thread, Event
+from threading import Thread, Event, Lock
 import queue
 import re
 import datetime
 
 bp = Blueprint('video', __name__)
-user_sessions : dict[UserSession, 'SearchThread'] = {}
+g_session_to_thread : dict[UserSession, 'SearchThread'] = {}
 
 # Regular expression pattern to match various YouTube URL formats
 g_ytb_url_pattern = re.compile(r'^.*(youtu.be/|v/|u/\w/|embed/|watch\?v=|shorts/&v=)([^#&?]*).*')
+g_service_lock = Lock()
 
 @tick_func
 def tick():
     debug_log('tick: video_search')
-    now = datetime.datetime.now()
-    if UserSession.is_valid(session):
-        usr_session = UserSession(session)
-        if (now - usr_session.last_active).total_seconds() > 1200:
-            debug_log(f'inactive session: {usr_session.id}')
-            if usr_session in user_sessions:
-                event = Event()
-                t = user_sessions[usr_session]
-                t.send_msg(SearchThread.CMD_STOP, None, event)
-                del user_sessions[usr_session]
-            usr_session.delete()
+    with g_service_lock:
+        now = datetime.datetime.now()
+        to_del = []
+        for usr_session, t in g_session_to_thread.items():
+            if (now - usr_session.last_active).total_seconds() > 1200:
+                debug_log(f'inactive session: {usr_session.id}')
+                if usr_session in g_session_to_thread:
+                    event = Event()
+                    t = g_session_to_thread[usr_session]
+                    t.send_msg(SearchThread.CMD_STOP, None, event)
+                    to_del.append(usr_session)
+        for usr_session in to_del:
+            del g_session_to_thread[usr_session]
 
 def handle_video(video : dict) -> 'SearchResultItem':
     width,height = 1080,720
@@ -45,11 +48,12 @@ def handle_video(video : dict) -> 'SearchResultItem':
     )
 
 def get_thread(ses : UserSession) -> 'SearchThread':
-    if ses in user_sessions:
-        return user_sessions[ses]
+    if ses in g_session_to_thread:
+        return g_session_to_thread[ses]
     debug_log(f'Creating new search thread for {ses.id}')
+    
     t = SearchThread(ses)
-    user_sessions[ses] = t
+    g_session_to_thread[ses] = t
     t.start()
     return t
 
@@ -154,56 +158,60 @@ def search_video_v2():
         else:
             return jsonify({'status': 'error', 'html': '<li>Video not found</li>'})
 
-    usr_session = UserSession(session)
-    t = get_thread(usr_session)
+    with g_service_lock:
+        usr_session = UserSession(session)
+        t = get_thread(usr_session)
 
-    usr_session.keep_alive()
-    debug_log(f"{usr_session.id}: search_video: {search_query}")
-    event = Event()
-    t.send_msg(SearchThread.CMD_SEARCH, search_query, event)
+        usr_session.keep_alive()
+        debug_log(f"{usr_session.id}: search_video: {search_query}")
+        event = Event()
+        t.send_msg(SearchThread.CMD_SEARCH, search_query, event)
 
-    if not event.wait(20):
-        return jsonify({'status': 'error', 'html': '<li>Search timeout</li>'})
-    return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
+        if not event.wait(20):
+            return jsonify({'status': 'error', 'html': '<li>Search timeout</li>'})
+        return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
 
 @bp.route('/user_disconnected', methods=['GET'])
 def user_disconnected():
     if UserSession.is_valid(session):
         usr_session = UserSession(session)
-        if usr_session in user_sessions:
-            event = Event()
-            t = user_sessions[usr_session]
-            t.send_msg(SearchThread.CMD_STOP, None, event)
-            del user_sessions[usr_session]
+        if usr_session in g_session_to_thread:
+            with g_service_lock:
+                event = Event()
+                t = g_session_to_thread[usr_session]
+                t.send_msg(SearchThread.CMD_STOP, None, event)
+                del g_session_to_thread[usr_session]
         usr_session.delete()
     return jsonify({'status': 'ok'})
 
 @bp.route('/next_page', methods=['GET'])
 def next_page():
     if UserSession.is_valid(session):
-        usr_session = UserSession(session)
-        t = get_thread(usr_session)
-        usr_session.keep_alive()
+        with g_service_lock:
+            usr_session = UserSession(session)
+            t = get_thread(usr_session)
+            usr_session.keep_alive()
 
-        debug_log(f'next_page: {usr_session.id}')
-        event = Event()
-        t.send_msg(SearchThread.CMD_NEXT_PAGE, None, event)
-        if not event.wait(20):
-            return jsonify({'status': 'error', 'html': '<li>Next page timeout</li>'})
-        return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
+            debug_log(f'next_page: {usr_session.id}')
+            event = Event()
+            t.send_msg(SearchThread.CMD_NEXT_PAGE, None, event)
+            if not event.wait(20):
+                return jsonify({'status': 'error', 'html': '<li>Next page timeout</li>'})
+            return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
     return jsonify({'status': 'error', 'html': '<li>Session not found</li>'})
 
 @bp.route('/prev_page', methods=['GET'])
 def prev_page():
     if UserSession.is_valid(session):
-        usr_session = UserSession(session)
-        t = get_thread(usr_session)
-        debug_log(f'prev_page: {usr_session.id}')
-        event = Event()
-        t.send_msg(SearchThread.CMD_PREV_PAGE, None, event)
-        if not event.wait(20):
-            return jsonify({'status': 'error', 'html': '<li>Prev page timeout</li>'})
-        return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
+        with g_service_lock:
+            usr_session = UserSession(session)
+            t = get_thread(usr_session)
+            debug_log(f'prev_page: {usr_session.id}')
+            event = Event()
+            t.send_msg(SearchThread.CMD_PREV_PAGE, None, event)
+            if not event.wait(20):
+                return jsonify({'status': 'error', 'html': '<li>Prev page timeout</li>'})
+            return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=t.get_search_result())})
     return jsonify({'status': 'error', 'html': '<li>Session not found</li>'})
 
 @bp.route('/')
