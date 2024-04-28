@@ -2,14 +2,32 @@ from flask import Blueprint, render_template, request, jsonify, current_app, ses
 
 from . import get_logger, debug_log
 from dataclasses import dataclass
-from youtubesearchpython import VideosSearch
+from youtubesearchpython import VideosSearch, Video
 from typing import Optional
 from threading import Thread, Event
 import queue
 import uuid
+import re
 
 bp = Blueprint('video', __name__)
 user_sessions : dict[uuid.UUID, 'SearchThread'] = {}
+
+# Regular expression pattern to match various YouTube URL formats
+g_ytb_url_pattern = re.compile(r'^.*(youtu.be/|v/|u/\w/|embed/|watch\?v=|shorts/&v=)([^#&?]*).*')
+
+def handle_video(video : dict) -> 'SearchResultItem':
+    width,height = 1080,720
+    if len(video['thumbnails']) > 0:
+        url = video['thumbnails'][0]['url']
+    else:
+        url = 'https://via.placeholder.com/640x480.png?text=No+thumbnail+found'
+    return SearchResultItem(
+        title = video['title'],
+        url = video['link'],
+        thumbnail = url,
+        width = width,
+        height = height
+    )
 
 @dataclass
 class SearchResultItem:
@@ -38,19 +56,7 @@ class SearchThread(Thread):
     def _handle_res(self, res: dict) -> list[SearchResultItem]:
         search_result = []
         for video in res['result']:
-            width,height = 1080,720
-            if len(video['thumbnails']) > 0:
-                url = video['thumbnails'][0]['url']
-            else:
-                url = 'https://via.placeholder.com/640x480.png?text=No+thumbnail+found'                
-
-            search_result.append(SearchResultItem(
-                title = video['title'],
-                url = video['link'],
-                thumbnail = url,
-                width = width,
-                height = height
-            ))
+            search_result.append(handle_video(video))
         return search_result
 
     def run(self):
@@ -100,7 +106,16 @@ class SearchThread(Thread):
 @bp.route('/search_video', methods=['GET'])
 def search_video_v2():
     search_query = request.args.get('searchInput')
- 
+    if g_ytb_url_pattern.match(search_query):
+        # user entered a YouTube URL, just return the video
+        # extract the id
+        search_query = g_ytb_url_pattern.match(search_query).group(2)
+        video = Video.getInfo(search_query)
+        if video:
+            return jsonify({'status': 'ok', 'html': render_template('search_result.html', videos=[handle_video(video)])})
+        else:
+            return jsonify({'status': 'error', 'html': '<li>Video not found</li>'})
+
     if 'id' not in session or session['id'] not in user_sessions or not session['id']:
         id = uuid.uuid4()
         session['id'] = id

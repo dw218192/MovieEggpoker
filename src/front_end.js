@@ -1,39 +1,43 @@
 import videojs from 'video.js';
 const _ = require('./Youtube.js');
 
-
 // Initialize Video.js
 var player = videojs('videoPlayer');
+player.loop(false);
 
-function playStream(url, title, width, height, type = 'application/x-mpegURL') {
-    console.log(`Playing stream: ${url}`);
-
-    const videoTitle = document.getElementById('videoTitle')
-    videoTitle.textContent = title;
-    // resizeVideoPlayer(width, height);
-
-    player.src({
-        type: type,
-        src: url,
-    });
-    player.play();
+class VideoJsUtils {
+    static toggleLoop() {
+        player.loop(!player.loop());
+    }
+    static playStream(url, title, width, height, type = 'application/x-mpegURL') {
+        console.log(`Playing stream: ${url}`);
+    
+        const videoTitle = document.getElementById('videoTitle')
+        videoTitle.textContent = title;
+        // resizeVideoPlayer(width, height);
+    
+        player.src({
+            type: type,
+            src: url,
+        });
+        player.play();
+    }
+    static playFromURL(url, title, width, height, type = 'application/x-mpegURL') {
+        console.log(`Playing video from URL: ${url} with type ${type}, width ${width}, and height ${height}`);
+    
+        const videoTitle = document.getElementById('videoTitle')
+        videoTitle.textContent = title;
+        // resizeVideoPlayer(width, height);
+    
+        player.src({
+            type: type,
+            src: url,
+        });
+        player.play();
+    }
 }
 
 // playing from Youtube, bilibili, or other video sites
-function playFromURL(url, title, width, height, type = 'application/x-mpegURL') {
-    console.log(`Playing video from URL: ${url} with type ${type}, width ${width}, and height ${height}`);
-
-    const videoTitle = document.getElementById('videoTitle')
-    videoTitle.textContent = title;
-    // resizeVideoPlayer(width, height);
-
-    player.src({
-        type: type,
-        src: url,
-    });
-    player.play();
-}
-
 function updateStreamList() {
     $.ajax({
         url: `fetch_streams`,
@@ -51,15 +55,6 @@ function fillSearchResults(data) {
     $("#search-results").html(data.html);    
 }
 
-// set up stream list
-// window.onresize = function () {
-//     const playerContainer = document.getElementById(player.id()).parentElement;
-//     const playerWidth = playerContainer.clientWidth;
-//     const playerHeight = playerContainer.clientHeight;
-//     resizeVideoPlayer(playerWidth, playerHeight);
-// }
-
-// resizeVideoPlayer(1080, 720);
 setInterval(updateStreamList, 2000);
 
 const searchForm = document.getElementById('searchInputForm');
@@ -98,8 +93,9 @@ document.getElementById('prevPageButton').addEventListener('click', function () 
 });
 
 // make sure these are preserved by Webpack
-window.playFromURL = playFromURL;
-window.playStream = playStream;
+window.playStream = VideoJsUtils.playStream;
+window.playFromURL = VideoJsUtils.playFromURL;
+window.toggleLoop = VideoJsUtils.toggleLoop;
 
 window.onbeforeunload = function () {
     player.dispose();

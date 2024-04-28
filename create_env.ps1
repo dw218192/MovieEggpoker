@@ -17,6 +17,7 @@ if ($lastexitcode -eq 0) {
 conda activate flask_env
 conda install flask opencv requests
 pip install yt-dlp gunicorn waitress youtube-search-python
+pip install hupper # for waitress auto-reload
 npm install webpack webpack-cli
 npm install -D tailwindcss
 npx tailwindcss init
