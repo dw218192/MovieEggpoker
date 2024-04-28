@@ -29,7 +29,7 @@ def create_app(test_config=None):
 
     get_logger().setLevel(app.debug)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler(LOG_FILE_PATH)
+    file_handler = logging.FileHandler(LOG_FILE_PATH, mode='w', encoding='utf-8')
     file_handler.setFormatter(formatter)
     # clear log file
     if os.path.exists(LOG_FILE_PATH):
