@@ -7,5 +7,9 @@ bp = Blueprint('manage', __name__)
 
 @bp.route('/manage', methods=['GET'])
 def manage():
+    return render_template('manage.html')
+
+@bp.route('/manage/api/info', methods=['GET'])
+def manage_api_info():
     num_search_threads = len(video_search.user_sessions)
-    return render_template('manage.html', num_search_threads=num_search_threads)
+    return jsonify({'status': 'ok', 'data': f'Active search threads: {num_search_threads}'})

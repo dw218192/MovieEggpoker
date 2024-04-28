@@ -11,7 +11,7 @@
             <ul class="ml-4 space-y-1">
                 {% for stream in grouped_streams %}
                 <li class="pl-4 border-l-2 border-gray-500 ml-2 cursor-pointer hover:bg-gray-700 rounded-md transition-colors duration-150"
-                    onclick="playStream('{{ stream.url }}', '{{stream.name}}', '{{stream.width}}', '{{stream.height}}')">
+                    onclick="playStream(`{{ stream.url }}`, `{{stream.name}}`, '{{stream.width}}', '{{stream.height}}')">
                     <span class="text-sm block py-2 px-3">{{ stream.name }} - {{ stream.width }}x{{ stream.height }}</span>
                 </li>
                 {% endfor %}

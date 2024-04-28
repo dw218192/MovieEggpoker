@@ -112,6 +112,7 @@ def search_video_v2():
         id = session['id']
         t = user_sessions[id]
 
+    debug_log(f"{id}: search_video: {search_query}")
     event = Event()
     t.send_msg(SearchThread.CMD_SEARCH, search_query, event)
 

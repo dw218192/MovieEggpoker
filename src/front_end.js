@@ -52,15 +52,15 @@ function fillSearchResults(data) {
 }
 
 // set up stream list
-window.onresize = function () {
-    const playerContainer = document.getElementById(player.id()).parentElement;
-    const playerWidth = playerContainer.clientWidth;
-    const playerHeight = playerContainer.clientHeight;
-    resizeVideoPlayer(playerWidth, playerHeight);
-}
+// window.onresize = function () {
+//     const playerContainer = document.getElementById(player.id()).parentElement;
+//     const playerWidth = playerContainer.clientWidth;
+//     const playerHeight = playerContainer.clientHeight;
+//     resizeVideoPlayer(playerWidth, playerHeight);
+// }
 
 // resizeVideoPlayer(1080, 720);
-setInterval(updateStreamList, 1000);
+setInterval(updateStreamList, 2000);
 
 const searchForm = document.getElementById('searchInputForm');
 searchForm.addEventListener('submit', function (event) {

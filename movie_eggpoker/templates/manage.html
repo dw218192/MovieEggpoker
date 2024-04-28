@@ -1,9 +1,33 @@
 <!-- simply displays debug info -->
 <!DOCTYPE html>
 <html lang="en">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+
+<body>
     <div>
         <h1>movies.eggpoker.com/manage</h1>
         <p>Debug info:</p>
-        <pre>num_search_threads: {{ num_search_threads }}</pre>
+        <pre id="debug_info">
+            <!-- Debug info will be dynamically inserted here -->
+        </pre>
     </div>
+</body>
+
+<script>
+    setInterval(() => {
+        $.ajax({
+            url: "/manage/api/info",
+            type: "GET",
+            success: function (response) {
+                if (response.status === 'ok') {
+                    $("#debug_info").text(response.data);
+                }
+            }
+        });
+    }, 1000);
+</script>
+
 </html>
