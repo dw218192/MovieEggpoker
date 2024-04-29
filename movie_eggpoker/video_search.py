@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, session, app, g
 
-from . import get_logger, debug_log, UserSession, tick_func
+from . import debug_log, UserSession, tick_func
 from dataclasses import dataclass
 from youtubesearchpython import VideosSearch, Video
 from typing import Optional
