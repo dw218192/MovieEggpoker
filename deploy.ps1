@@ -6,6 +6,7 @@ param (
 
 if ($dbg) {
     Write-Host "Debug mode enabled"
+    $env:FLASK_ENV = "development"
     $env:FLASK_DEBUG = 1
 
     $webpack_job = Start-Job -ScriptBlock {
@@ -21,6 +22,10 @@ if ($dbg) {
 
     # Set NODE_ENV for non-obfuscated webpack output
     $env:NODE_ENV = "debug"
+}
+else {
+    $env:FLASK_ENV = "production"
+    $env:FLASK_DEBUG = 0
 }
 
 try {

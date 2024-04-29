@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, session, app, g
 
-from . import debug_log, UserSession, tick_func
+from . import debug_log, info, UserSession, tick_func
 from dataclasses import dataclass
 from youtubesearchpython import VideosSearch, Video
 from typing import Optional
@@ -8,6 +8,7 @@ from threading import Thread, Event, Lock
 import queue
 import re
 import datetime
+from .consts import SESSION_TIMEOUT
 
 bp = Blueprint('video', __name__)
 g_session_to_thread : dict[UserSession, 'SearchThread'] = {}
@@ -23,8 +24,8 @@ def tick():
         now = datetime.datetime.now()
         to_del = []
         for usr_session, t in g_session_to_thread.items():
-            if (now - usr_session.last_active).total_seconds() > 1200:
-                debug_log(f'inactive session: {usr_session.id}')
+            if (now - usr_session.last_active).total_seconds() > SESSION_TIMEOUT:
+                info(f'inactive session: {usr_session.id}')
                 if usr_session in g_session_to_thread:
                     event = Event()
                     t = g_session_to_thread[usr_session]
@@ -163,7 +164,7 @@ def search_video_v2():
         t = get_thread(usr_session)
 
         usr_session.keep_alive()
-        debug_log(f"{usr_session.id}: search_video: {search_query}")
+        info(f"{usr_session.id}: search_video: {search_query}")
         event = Event()
         t.send_msg(SearchThread.CMD_SEARCH, search_query, event)
 
@@ -192,7 +193,7 @@ def next_page():
             t = get_thread(usr_session)
             usr_session.keep_alive()
 
-            debug_log(f'next_page: {usr_session.id}')
+            info(f'next_page: {usr_session.id}')
             event = Event()
             t.send_msg(SearchThread.CMD_NEXT_PAGE, None, event)
             if not event.wait(20):
@@ -206,7 +207,7 @@ def prev_page():
         with g_service_lock:
             usr_session = UserSession(session)
             t = get_thread(usr_session)
-            debug_log(f'prev_page: {usr_session.id}')
+            info(f'prev_page: {usr_session.id}')
             event = Event()
             t.send_msg(SearchThread.CMD_PREV_PAGE, None, event)
             if not event.wait(20):

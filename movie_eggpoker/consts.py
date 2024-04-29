@@ -1,3 +1,5 @@
 LOG_FILE_PATH = '_local/log.log'
 TICK_INTERVAL = 60
 MAX_LOG_LINES = 100
+# in secs
+SESSION_TIMEOUT = 360

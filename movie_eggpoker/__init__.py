@@ -3,6 +3,8 @@ import os
 from flask import Flask
 import random
 import logging
+from logging.handlers import RotatingFileHandler
+
 import datetime
 import uuid
 from threading import Thread, Event
@@ -54,6 +56,18 @@ def get_logger():
 def debug_log(message):
     get_logger().log(logging.DEBUG, message)
 
+def info(message):
+    get_logger().log(logging.INFO, message)
+
+def error(message):
+    get_logger().log(logging.ERROR, message)
+
+def warning(message):
+    get_logger().log(logging.WARNING, message)
+
+def critical(message):
+    get_logger().log(logging.CRITICAL, message)
+
 g_tick_funcs = []
 # periodic cleanup of inactive threads
 def tick_func(func):
@@ -94,14 +108,20 @@ def create_app(test_config=None):
         pass
 
     # set up logging
-    get_logger().setLevel(app.debug)
+    get_logger().setLevel(logging.DEBUG if app.debug else logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler(LOG_FILE_PATH, mode='w', encoding='utf-8')
+    file_handler = RotatingFileHandler(filename=LOG_FILE_PATH,
+                                       mode='w',
+                                       encoding='utf-8',
+                                       maxBytes=1024*1024, 
+                                       backupCount=1)
     file_handler.setFormatter(formatter)
     # clear log file
     if os.path.exists(LOG_FILE_PATH):
         open(LOG_FILE_PATH, 'w').close()
     get_logger().addHandler(file_handler)
+
+    info(f'Logging to {LOG_FILE_PATH} with level {logging.getLevelName(get_logger().getEffectiveLevel())}')
 
     # register blueprints
     from . import video_search, stream, manage

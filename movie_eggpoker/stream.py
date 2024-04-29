@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, session, app, g
 import requests
 import xml.etree.ElementTree as ET
-from . import get_logger, debug_log
+from . import error
 from dataclasses import dataclass
 
 
@@ -28,7 +28,7 @@ def fetch_active_streams():
         if root is None:
             raise ET.ParseError("root is None")
     except ET.ParseError as e:
-        get_logger().error(f"Failed to parse XML: {e}")
+        error(f"Failed to parse XML: {e}")
         return jsonify({'status' : 'error', 'html' : f'Failed to parse XML: {xml}'})
 
     stream_dict : dict[str, list[StreamDesc]] = {}
